@@ -12,6 +12,7 @@ public class Request {
 	private byte[] body;
 	private boolean isBad=false;
 	public Request(DataInputStream  reader,Connection connection) throws IOException{
+
 		String line=reader.readLine();
 		while(line==null){
 			 line=reader.readLine();

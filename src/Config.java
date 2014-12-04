@@ -9,6 +9,8 @@ public class Config {
 	public static String SUPPORTED_METHODS[]={"GET","HEAD","PUT","DELETE","OPTIONS","TRACE","POST"};
 	public static String SERVER_NAME="MyServer/1.0";
 	public static String DEFAULT_ROOT=System.getProperty("user.home")+"/Server";
+	public static long CONNECTION_STAY_ALIVE_TIME=5000;
+	
 	
 	public static String FILE_404=System.getProperty("user.home")+"/Server/file_404.html";
 	public static String FILE_505=System.getProperty("user.home")+"/Server/file_505.html";
@@ -41,6 +43,7 @@ public class Config {
 						if(par.equalsIgnoreCase("FILE_400"))FILE_400=val;
 						if(par.equalsIgnoreCase("FILE_405"))FILE_405=val;
 						if(par.equalsIgnoreCase("DEFAULT_PORT"))DEFAULT_PORT=Integer.parseInt(val);
+						if(par.equalsIgnoreCase("CONNECTION_STAY_ALIVE_TIME"))CONNECTION_STAY_ALIVE_TIME=Long.parseLong(val);
 				}
 				br.close();
 			}catch(Exception ex){}

@@ -12,27 +12,11 @@ public class MiniJServer {
 	public static int USING_PORT=Config.DEFAULT_PORT;
 	public  static ServerSocket server;
 	public static CopyOnWriteArrayList<Connection> activeConnections=new CopyOnWriteArrayList<Connection>();
+	public static boolean RUNNING_AS_SERVER=false;
 	public static void main(String[] args) throws IOException{
 		
-		/**if there is an config specified then load it ,else load the default one(if exists)*/
-		String argconf=Utils.argVal(args, "--config","-c");
-		if(argconf!=null){
-			Config.load(argconf);	
-		}else Config.load(null);	
-		
-		USING_PORT=Config.DEFAULT_PORT;
-		USING_ROOT=Config.DEFAULT_ROOT;  
-		
-		/*check if the user has specified a port in the arguments*/
-		String argport=Utils.argVal(args, "--port","-p");
-		if(argport!=null)USING_PORT=Integer.parseInt(argport);
-		
-		/*check if the user has specified a root path for the files,the default root is in the root of the C drive*/
-		String argroot=Utils.argVal(args, "--root","-r");
-		if(argroot!=null)USING_ROOT=argroot;
-		
 		/**if the commands are one of the following  then start the server */
-		if(Utils.contains(args, "--start","-s") || Utils.contains(args, "--port","-p") || Utils.contains(args, "--root","-r") || Utils.contains(args, "--config","-c")    || args.length==0){
+		if(RUNNING_AS_SERVER   || args.length==0){
 			/*check if the port is already binded*/
 			if(!Utils.isPortInUse(USING_PORT)){
 				Logger.log("starting the server");
@@ -64,11 +48,47 @@ public class MiniJServer {
 				Logger.log("Server is already running on "+USING_PORT);
 			}
 		}
-		else if(Utils.contains(args, "--help","--about","-a","-h")){/**if one of the requested commands are help,then return the help manual*/
+		else if(Utils.contains(args, "--help","--about","-a","-h")){/**if ts not running as a server and there is a help parrameter then print the manual*/
 			Logger.log(HelpManual.getManual());
 		}
-		else{/*since the commands are not --start ,--port , --help , --config  or --root,then send them to a running server(if one exists)*/
+		else{/*since this is a client and the command,then send the parameters  to a running server(if one exists)*/
 			CommandServerAndClient.setupClient(args);
+		}
+	}
+	
+	public static void proccessParameters(String[] args){
+		/**if there is an config specified then load it ,else load the default one(if exists)*/
+		String argconf=Utils.argVal(args, "--config","-c");
+		if(argconf!=null){
+			Config.load(argconf);	
+			RUNNING_AS_SERVER=true;
+		}else Config.load(null);	
+		
+		USING_PORT=Config.DEFAULT_PORT;
+		USING_ROOT=Config.DEFAULT_ROOT;  
+		
+		/*check if the user has specified a port in the arguments*/
+		String argport=Utils.argVal(args, "--port","-p");
+		if(argport!=null){
+			RUNNING_AS_SERVER=true;
+			USING_PORT=Integer.parseInt(argport);
+		}
+		
+		/*check if the user has specified a root path for the files,the default root is in the root of the C drive*/
+		String argroot=Utils.argVal(args, "--root","-r");
+		if(argroot!=null){
+			RUNNING_AS_SERVER=true;
+			USING_ROOT=argroot;
+		}
+		
+		String connectionTimeout=Utils.argVal(args, "--timeout","-t");
+		if(connectionTimeout!=null){
+			RUNNING_AS_SERVER=true;
+			Config.CONNECTION_STAY_ALIVE_TIME=Long.parseLong(argport);
+		}
+		
+		if(Utils.contains(args, "--start","-s")){
+			RUNNING_AS_SERVER=true;
 		}
 	}
 }

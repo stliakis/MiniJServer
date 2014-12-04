@@ -4,13 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Utils {
 
@@ -179,4 +179,24 @@ public class Utils {
 		}
 		return result;
 	}
+	
+	public static class ReschedulableTimer  extends java.util.Timer {
+		  private Runnable task;
+		  private TimerTask timerTask;
+		  public void schedule(Runnable runnable, long delay) {
+		    task = runnable;
+		    timerTask = new TimerTask() { public void run() { task.run(); }};
+		    new java.util.Timer().schedule(timerTask, delay);        
+		  }
+
+		  public void reschedule(long delay) {
+		    timerTask.cancel();
+		    timerTask = new TimerTask() {
+		    	public void run() {
+		    		task.run(); 
+		    	}
+		    };
+		    new java.util.Timer().schedule(timerTask, delay);        
+		  }
+		}
 }
