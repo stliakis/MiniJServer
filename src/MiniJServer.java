@@ -8,13 +8,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MiniJServer {
 	public static boolean RUNNING=true;
-	public static String USING_ROOT=Config.DEFAULT_ROOT;
-	public static int USING_PORT=Config.DEFAULT_PORT;
+	public static String USING_ROOT=Config.DEFAULT_ROOT; /*the current used root of the server*/
+	public static int USING_PORT=Config.DEFAULT_PORT; /*the current used port of the HTTP server*/
 	public  static ServerSocket server;
-	public static CopyOnWriteArrayList<Connection> activeConnections=new CopyOnWriteArrayList<Connection>();
-	public static boolean RUNNING_AS_SERVER=false;
-	public static void main(String[] args) throws IOException{
-		
+	public static CopyOnWriteArrayList<Connection> activeConnections=new CopyOnWriteArrayList<Connection>(); /*contains all the active connections to the http clients*/
+	public static boolean RUNNING_AS_SERVER=false;/*if the program runs as an HTTP server ,or as a client sending commands to a running HTTP Server*/
+	
+ 	public static void main(String[] args) throws IOException{
 		/**if the commands are one of the following  then start the server */
 		if(RUNNING_AS_SERVER   || args.length==0){
 			/*check if the port is already binded*/
@@ -81,12 +81,13 @@ public class MiniJServer {
 			USING_ROOT=argroot;
 		}
 		
+		/*check if the user has specified a custom timeout time(time before a connection ends*/
 		String connectionTimeout=Utils.argVal(args, "--timeout","-t");
 		if(connectionTimeout!=null){
 			RUNNING_AS_SERVER=true;
 			Config.CONNECTION_STAY_ALIVE_TIME=Long.parseLong(argport);
 		}
-		
+		/*useless command :)*/
 		if(Utils.contains(args, "--start","-s")){
 			RUNNING_AS_SERVER=true;
 		}

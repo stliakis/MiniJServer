@@ -21,10 +21,12 @@ public class CommandServerAndClient {
 			public void run() {
 				ServerSocket server=null;
 				
+				/**check if there is a different command server port in the arguments*/
 				int serverPort=DEFAULT_COMMAND_PORT;
 				String customPort=Utils.argVal(args, "--cport","-o");
 				if(customPort!=null)serverPort=Integer.parseInt(customPort);
 				
+				/**create the command server*/
 				do{
 					try {
 						server = new ServerSocket(serverPort);
@@ -43,6 +45,7 @@ public class CommandServerAndClient {
 						Socket socket = server.accept();
 						BufferedReader  br =new BufferedReader(new InputStreamReader(socket.getInputStream()));
 						BufferedWriter  bw =new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+						/**executre any incoming command*/
 						if(execCommands(br.readLine(),bw,socket)){
 							bw.close();
 							socket.close();
@@ -93,14 +96,14 @@ public class CommandServerAndClient {
 		if(command==null)return true;
 		boolean closeConnectionAfter=true;
 		String[] commands=command.split(" ");
-		if(Utils.contains(commands, "--status","-t")){
+		if(Utils.contains(commands, "--status","-t")){/*if the command is status then return the status of the server to the command client*/
 			bw.write("[status]");bw.newLine();
 			bw.write("status: server is running");	bw.newLine();
 			bw.write("address: "+InetAddress.getLocalHost().getHostAddress());bw.newLine();
 			bw.write("port: "+MiniJServer.server.getLocalPort());	bw.newLine();
 			bw.flush();
 		}
-		if(Utils.contains(commands, "--connections","-n")){
+		if(Utils.contains(commands, "--connections","-n")){/*if the command is --connections ,return the active tcp connections to all the http clients*/
 			bw.write("ID\t\tCLIENT ADRESS");bw.newLine();
 			for(int c=0;c<MiniJServer.activeConnections.size();c++){
 				Connection con=MiniJServer.activeConnections.get(c);
@@ -109,7 +112,7 @@ public class CommandServerAndClient {
 			}
 			bw.flush();
 		}
-		if(Utils.contains(commands, "--kill","-k")){
+		if(Utils.contains(commands, "--kill","-k")){/*kill a a connection with a client(if the value is number) or all the connections(if the value is 'all')*/
 			if(Utils.argVal(commands,  "--kill","-k").equals("all")){
 				for(Connection con:MiniJServer.activeConnections){
 					con.close();
