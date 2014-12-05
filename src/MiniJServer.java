@@ -15,6 +15,9 @@ public class MiniJServer {
 	public static boolean RUNNING_AS_SERVER=false;/*if the program runs as an HTTP server ,or as a client sending commands to a running HTTP Server*/
 	
  	public static void main(String[] args) throws IOException{
+ 		
+ 		proccessParameters(args);
+ 		
 		/**if the commands are one of the following  then start the server */
 		if(RUNNING_AS_SERVER   || args.length==0){
 			/*check if the port is already binded*/
