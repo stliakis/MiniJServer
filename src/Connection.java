@@ -20,9 +20,9 @@ public class Connection {
 		
 		Logger.log("---------------------Connection to "+socket.getRemoteSocketAddress()+" started---------------------");
 		
-		
-		Executors.newSingleThreadScheduledExecutor();
-		
+		/**make a timer that will end the connection after the timeouttime has passed
+		 * the timer will reset everytime there is activity (client send a new request)
+		 */
 		final Utils.ReschedulableTimer  timeoutTimer=new Utils.ReschedulableTimer () ;
 		timeoutTimer.schedule(new Runnable(){
 			public void run() {
@@ -36,7 +36,7 @@ public class Connection {
 		DataInputStream dis=new DataInputStream(socket.getInputStream());
 		DataOutputStream dos =new DataOutputStream(socket.getOutputStream());
 		
-		while(socket.isConnected()){
+		while(socket.isConnected() && !socket.isClosed()){
 			try{
 				/**wait until there are new data in to the stream,if the connection is no more alive then close it*/
 				while(dis.available()==0){
@@ -60,7 +60,8 @@ public class Connection {
 					/*log the details of the communication*/
 					Logger.log(toString(request,response,socket));
 	
-					/*if the request is bad formatted or it has its Connection header set to close , close the connection after sending the response*/
+					/*if the request is bad formatted or it has its Connection header set to close , close the connection after sending the response
+					 * else reset the timeout time*/
 					if(request.isBadRequest() || !"keep-alive".equalsIgnoreCase(request.getHeader("Connection"))){
 						close();
 					}else timeoutTimer.reschedule(Config.CONNECTION_STAY_ALIVE_TIME);
