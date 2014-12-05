@@ -88,7 +88,7 @@ public class MiniJServer {
 		String connectionTimeout=Utils.argVal(args, "--timeout","-t");
 		if(connectionTimeout!=null){
 			RUNNING_AS_SERVER=true;
-			Config.CONNECTION_STAY_ALIVE_TIME=Long.parseLong(argport);
+			Config.CONNECTION_STAY_ALIVE_TIME=Long.parseLong(connectionTimeout);
 		}
 		/*useless command :)*/
 		if(Utils.contains(args, "--start","-s")){
