@@ -5,15 +5,15 @@ import java.util.List;
 public class Logger {
 	/** listener for interesecting incoming call to println */
 	public static interface OnLogListener {
-		public void onPrintlnCall(String line);
+		public void onLogCall(String line);
 	}
 
-	private static ArrayList<OnLogListener> onPrintListeners = new ArrayList<OnLogListener>();
+	private static ArrayList<OnLogListener> onLogListeners = new ArrayList<OnLogListener>();
 	private static ArrayList<OnLogListener> readyToRemoveListeners = new ArrayList<OnLogListener>();
 
 	/** add a listener that gets called every time there is a new println call */
 	public static void addLogListener(OnLogListener lis) {
-		onPrintListeners.add(lis);
+		onLogListeners.add(lis);
 	}
 
 	/** set to remove the listener on the next println call */
@@ -29,11 +29,11 @@ public class Logger {
 		LogEntry logEntry=new LogEntry(text,Utils.getTime());
 		
 		for (OnLogListener toRemove : readyToRemoveListeners)
-			onPrintListeners.remove(toRemove);
+			onLogListeners.remove(toRemove);
 		readyToRemoveListeners.clear();
 		
-		for (OnLogListener listener : onPrintListeners)
-			listener.onPrintlnCall(logEntry.toString());
+		for (OnLogListener listener : onLogListeners)
+			listener.onLogCall(logEntry.toString());
 		
 		System.out.println(logEntry);
 		log.add(logEntry);

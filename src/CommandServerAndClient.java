@@ -134,7 +134,7 @@ public class CommandServerAndClient {
 		if(Utils.contains(commands, "--log","-l")){/**if the command is --log then add a listener to the Logger.println and on every println ,send the data to the client*/
 			bw.write("[log]"       );bw.newLine();
 			Logger.addLogListener(new Logger.OnLogListener() {
-				public void onPrintlnCall(String line) {
+				public void onLogCall(String line) {
 					try {
 						bw.write(line);
 						bw.newLine();
@@ -144,12 +144,12 @@ public class CommandServerAndClient {
 							bw.close();
 							socket.close();
 						} catch (IOException e1) {}
-						System.out.println("print listener["+socket.getRemoteSocketAddress()+"]"+" removed");
+						System.out.println("log listener["+socket.getRemoteSocketAddress()+"]"+" removed");
 						Logger.removeLogListener(this);
 					}	
 				}
 			});
-			Logger.log("print listener["+socket.getRemoteSocketAddress()+"]"+" added");
+			Logger.log("log listener["+socket.getRemoteSocketAddress()+"]"+" added");
 			closeConnectionAfter=false;
 		}
 		if(Utils.contains(commands, "--quit","-q")){
