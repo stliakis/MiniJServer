@@ -1,18 +1,21 @@
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.Socket;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 
 public class Request {
 	private RequestLine requestLine;
-	private HashMap<String,String> headers=new HashMap<String,String>();
+	private Map<String,String> headers=new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	private byte[] body;
+	private String querie;
 	private boolean isBad=false;
+	private Connection connection;
 	public Request(DataInputStream  reader,Connection connection) throws IOException{
-
+		this.connection=connection;
+		
 		String line=reader.readLine();
 		while(line==null){
 			 line=reader.readLine();
@@ -49,6 +52,14 @@ public class Request {
 		if(body!=null)output+=Utils.newLine()+new String(body);
 		return output;
 	}
+	
+	
+	public Connection getConnection() {
+		return connection;
+	}
+	public String getQuerie() {
+		return querie;
+	}
 	public boolean isBadRequest(){
 		return isBad;
 	}
@@ -61,9 +72,8 @@ public class Request {
 	public byte[] getBody() {
 		return body;
 	}
-	public static class RequestLine {
+	public  class RequestLine {
 		private String method, url, version;
-		private HashMap<String,String> queries;
 		public RequestLine(String requestLine,Connection connection) {
 			if (requestLine != null && requestLine.contains(" ")) {
 				String parts[] = requestLine.split(" ");
@@ -74,15 +84,9 @@ public class Request {
 				if (parts.length != 2)
 					version = parts[2];
 				
-				/**if the url contains a query string then add it to the querys map*/
+				/**if the url contains a query string then put it to the querie*/
 				if(url!=null && url.contains("?")){
-					queries=Utils.getQueries(url.split("\\?")[1]);
-					Logger.log("---------------------[Query via GET from "+connection.getSocket().getRemoteSocketAddress()+"]------------------------");
-					for(Iterator it=queries.entrySet().iterator();it.hasNext();){
-						Entry entry=(Entry)it.next();
-						System.out.println(entry.getKey()+"="+entry.getValue());
-					}
-					Logger.log("---------------------------------------------------------------------------------");
+					querie=url.split("\\?")[1];
 					url=url.split("\\?")[0];
 				}
 				

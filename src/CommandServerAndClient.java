@@ -130,7 +130,7 @@ public class CommandServerAndClient {
 			bw.flush();
 		}
 		for(String file=Utils.argVal(commands, "--savelog","-l");file!=null;){/*if the command is --savelog then save all the log(calls to Logger.println) into the selected file*/
-			FileOutputStream writer = new FileOutputStream(new File(MiniJServer.USING_ROOT+file));
+			FileOutputStream writer = new FileOutputStream(new File(Config.ROOT+file));
 			writer.write(Logger.getLogString().getBytes());
 			writer.close();
 		}

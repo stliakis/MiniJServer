@@ -2,6 +2,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,7 +16,7 @@ public class Response {
 	private byte[] bodyBytes;
 	
 	private Connection connection;
-	public Response(Request request,Connection connection) throws IOException{
+	public Response(Request request,Connection connection) throws Exception{
 		this.connection=connection;
 		
 		/*check if the request was not understandable,and send an 400 if so*/
@@ -37,7 +38,7 @@ public class Response {
 		
 		/*check if the requested file exits and send a 404 if it doesn't*/
 		if("GET".equalsIgnoreCase(request.getRequestLine().getMethod()) && !("*".equalsIgnoreCase(request.getRequestLine().getUrl()))){
-			File f = new File(MiniJServer.USING_ROOT+request.getRequestLine().getUrl());
+			File f = new File(Config.ROOT+request.getRequestLine().getUrl());
 			if(!f.exists() || f.isDirectory()) {
 				 constructFileNotFound(request);
 				return;
@@ -104,14 +105,34 @@ public class Response {
 		return headers.get(name);
 	}
 	
+	
+	public byte[] executePHPScript(Request request,File file) throws Exception{
+		byte[] bytes;
+		if(Config.PHP_PATH==null){
+			bytes="php files are not supported by the server or a valid cgi script has not been set".getBytes();
+		}else{
+			ArrayList<String> result=PHP.execute(request, file);
+			headers.put(result.get(0).split(":")[0], result.get(0).split(":")[1]);
+			headers.put(result.get(1).split(":")[0], result.get(1).split(":")[1]);
+			String lines="";
+			for(int c=2;c<result.size();c++){
+				lines+=result.get(c);
+			}
+			bytes=lines.getBytes();
+		}
+		return bytes;
+	}
+	
 	/**Constructs a 200(everything went well) response based on the used method*/
-	public void construct200OK(Request request) throws IOException{
+	public void construct200OK(Request request) throws Exception{
 		if(request.getRequestLine().getMethod().equalsIgnoreCase("GET")){/*if the method is GET ,find the requested file and put it to body*/
+			/*read the requested file and store it into the body*/
+			File file=new File(Config.ROOT+request.getRequestLine().getUrl());
+			if(file.getAbsolutePath().endsWith(".php") || file.getAbsolutePath().endsWith(".PHP")){
+				bodyBytes=executePHPScript(request,file);
+			}else bodyBytes=Utils.readFile(file);
 			/*set the statusLine of the response*/
 			statusLine=request.getRequestLine().getVersion()+" "+"200 OK";
-			/*read the requested file and store it into the body*/
-			File file=new File(MiniJServer.USING_ROOT+request.getRequestLine().getUrl());
-			bodyBytes=Utils.readFile(file);
 			/*insert the date of the last modification made to the file into the headers*/
 			headers.put("Content-Type",getFileType(file));  
 			headers.put("Last-Modified", Utils.longToDate(file.lastModified()));
@@ -120,8 +141,10 @@ public class Response {
 			/*set the statusLine of the response*/
 			statusLine=request.getRequestLine().getVersion()+" "+"200 OK";
 			/*read the requested file and store it into the body*/
-			File file=new File(MiniJServer.USING_ROOT+request.getRequestLine().getUrl());
-			bodyBytes=Utils.readFile(file);
+			File file=new File(Config.ROOT+request.getRequestLine().getUrl());
+			if(file.getAbsolutePath().endsWith(".php") || file.getAbsolutePath().endsWith(".PHP")){
+				bodyBytes=executePHPScript(request,file);
+			}else bodyBytes=Utils.readFile(file);
 			/*insert the date of the last modification made to the file into the headers*/
 			headers.put("Content-Type",getFileType(file));
 			headers.put("Last-Modified", Utils.longToDate(file.lastModified()));
@@ -130,7 +153,7 @@ public class Response {
 			bodyBytes=null;
 		}else if(request.getRequestLine().getMethod().equalsIgnoreCase("PUT")){/*if the method is PUT ,put the body in the requested url*/
 			statusLine=request.getRequestLine().getVersion()+" "+"201 Created";
-			FileOutputStream writer = new FileOutputStream(new File(MiniJServer.USING_ROOT+request.getRequestLine().getUrl()));
+			FileOutputStream writer = new FileOutputStream(new File(Config.ROOT+request.getRequestLine().getUrl()));
 			writer.write(request.getBody());
 			writer.close();
 			String body="<html><body><h1>The file was created.</h1></body></html>";
@@ -139,7 +162,7 @@ public class Response {
 			headers.put("Content-Length", body.length()+"");
 		}else if(request.getRequestLine().getMethod().equalsIgnoreCase("DELETE")){/*if the method is DELETE  ,delete the file specified by the url*/
 			statusLine=request.getRequestLine().getVersion()+" "+"200 OK";
-			File file=new File(MiniJServer.USING_ROOT+request.getRequestLine().getUrl());
+			File file=new File(Config.ROOT+request.getRequestLine().getUrl());
 			if(file.exists())file.delete();
 			String body="<html><body><h1>The file was deleted</h1></body></html>";
 			bodyBytes=body.getBytes();
@@ -155,17 +178,17 @@ public class Response {
 			headers.put("Content-Length", bodyBytes.length+"");
 			headers.put("Content-Type", "text/html");
 		}else if(request.getRequestLine().getMethod().equalsIgnoreCase("POST")){/*if the method is POST  ,store the data and print it on the server's log*/
+			/*read the requested file and store it into the body*/
+			File file=new File(Config.ROOT+request.getRequestLine().getUrl());
+			if(file.getAbsolutePath().endsWith(".php") || file.getAbsolutePath().endsWith(".PHP")){
+				bodyBytes=executePHPScript(request,file);
+			}else bodyBytes=Utils.readFile(file);
+			/*set the statusLine of the response*/
 			statusLine=request.getRequestLine().getVersion()+" "+"200 OK";
-			/* body example action=addentry&subject=Hello,%20World */
-			HashMap<String, String> postData=Utils.getQueries(new String(request.getBody()));
-			headers.put("Content-Type", "text/html");
-			/*process the postDate*/
-			Logger.log("---------------------[Query via POST from "+connection.getSocket().getRemoteSocketAddress()+"]------------------------");
-			for(Iterator it=postData.entrySet().iterator();it.hasNext();){
-				Entry entry=(Entry)it.next();
-				System.out.println(entry.getKey()+"="+entry.getValue());
-			}
-			Logger.log("---------------------------------------------------------------------------------");
+			/*insert the date of the last modification made to the file into the headers*/
+			headers.put("Content-Type",getFileType(file));  
+			headers.put("Last-Modified", Utils.longToDate(file.lastModified()));
+			headers.put("Content-Length",bodyBytes.length+"");
 		}
 		headers.put("Date", Utils.getDate());
 		headers.put("Server", Config.SERVER_NAME);

@@ -13,7 +13,7 @@ public class Connection {
 	 * to be generated based on the client' s request
 	 * @throws IOException */
 	
-	public Connection(Socket socket) throws IOException  {
+	public Connection(Socket socket) throws Exception  {
 		this.socket=socket;
 		
 		MiniJServer.activeConnections.add(this);
