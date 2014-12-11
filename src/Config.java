@@ -15,6 +15,9 @@ public class Config {
 	public static String FILE_505=System.getProperty("user.home")+"/Server/file_505.html";
 	public static String FILE_400=System.getProperty("user.home")+"/Server/file_400.html";
 	public static String FILE_405=System.getProperty("user.home")+"/Server/file_405.html";
+	public static String SSL_PASS=null;
+	public static String SSL_FILE=null;
+	
 	public static int PORT=2048;
 	
 	/**search if there is a server.conf file in the [user folder]/Server folder
@@ -36,6 +39,8 @@ public class Config {
 						if(par.equalsIgnoreCase("SUPPORTED_HTTP"))SUPPORTED_HTTP=Utils.toArray(val, ",");
 						if(par.equalsIgnoreCase("SUPPORTED_METHODS"))SUPPORTED_METHODS=Utils.toArray(val, ",");
 						if(par.equalsIgnoreCase("SERVER_NAME"))SERVER_NAME=val;
+						if(par.equalsIgnoreCase("SSL_PASS"))SSL_PASS=val;
+						if(par.equalsIgnoreCase("SSL_FILE"))SSL_FILE=val;
 						if(par.equalsIgnoreCase("ROOT"))ROOT=val;
 						if(par.equalsIgnoreCase("PHP_PATH"))PHP_PATH=val;
 						if(par.equalsIgnoreCase("FILE_404"))FILE_404=val;

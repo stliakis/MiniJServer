@@ -1,9 +1,19 @@
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 
 public class MiniJServer {
@@ -11,6 +21,28 @@ public class MiniJServer {
 	public  static ServerSocket server;
 	public static CopyOnWriteArrayList<Connection> activeConnections=new CopyOnWriteArrayList<Connection>(); /*contains all the active connections to the http clients*/
 	public static boolean RUNNING_AS_SERVER=false;/*if the program runs as an HTTP server ,or as a client sending commands to a running HTTP Server*/
+	
+	public static ServerSocket setUpServerSocket() throws Exception{
+		ServerSocket server=null ;
+		if(Config.SSL_FILE!=null &&  Config.SSL_PASS!=null && (new File(Config.SSL_FILE)).exists()){
+				try{
+		            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		            keyStore.load(new FileInputStream( Config.SSL_FILE), Config.SSL_PASS.toCharArray());
+		            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		            tmf.init(keyStore);
+		            SSLContext ctx = SSLContext.getInstance("SSL");
+		            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		            kmf.init(keyStore,  Config.SSL_PASS.toCharArray());
+		            ctx.init(kmf.getKeyManagers(), null, null);
+		            SSLServerSocketFactory factory = ctx.getServerSocketFactory();
+		            server = (SSLServerSocket) factory.createServerSocket(Config.PORT);
+				}catch(Exception ex){}
+		}
+		if(server==null){
+			server = new ServerSocket(Config.PORT);
+		}
+		return server;
+	}
 	
  	public static void main(String[] args) throws Exception{
  		
@@ -21,12 +53,15 @@ public class MiniJServer {
 			/*check if the port is already binded*/
 			if(!Utils.isPortInUse(Config.PORT)){
 				Logger.log("starting the server");
-				server = new ServerSocket(Config.PORT);
+				
+				server = setUpServerSocket();
+				
 				Logger.log("server address(local):  "+InetAddress.getLocalHost().getHostAddress()+":"+Config.PORT);
 				Logger.log("server root:  "+Config.ROOT);;
 				Logger.log("server name: "+Config.SERVER_NAME);
 				Logger.log("supported methods: "+Arrays.toString(Config.SUPPORTED_METHODS));;
 				Logger.log("supported http versions: "+Arrays.toString(Config.SUPPORTED_HTTP));;
+				Logger.log("ssl: "+((server instanceof ServerSocket)?"disabled":"enabled"));;
 				if(Config.PHP_PATH!=null && (new File(Config.PHP_PATH)).exists())Logger.log("php: "+Config.PHP_PATH);
 				else if(Config.PHP_PATH!=null) Logger.log("php support:disabled");
 				else  Logger.log("php:the file path was incorrect ("+Config.PHP_PATH+")");
@@ -94,6 +129,20 @@ public class MiniJServer {
 		if(connectionTimeout!=null){
 			RUNNING_AS_SERVER=true;
 			Config.CONNECTION_STAY_ALIVE_TIME=Long.parseLong(connectionTimeout);
+		}
+		
+		/*check if the user has provide an ssl keystroke file*/
+		String sslfile=Utils.argVal(args, "--sslfile");
+		if(sslfile!=null){
+			RUNNING_AS_SERVER=true;
+			Config.SSL_FILE=sslfile;
+		}
+		
+		/*check if the user has provide an ssl password for the keystroke*/
+		String sslpass=Utils.argVal(args, "--sslpass");
+		if(sslpass!=null){
+			RUNNING_AS_SERVER=true;
+			Config.SSL_PASS=sslpass;
 		}
 		
 		/*useless command :)*/
