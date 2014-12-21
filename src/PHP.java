@@ -11,6 +11,7 @@ public class PHP {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
+	
 	public static ArrayList<String> execute(final Request request, final File file)
 			throws Exception {
 		
@@ -34,17 +35,13 @@ public class PHP {
 				add("SERVER_PORT=" + Config.PORT);
 				add("SERVER_SOFTWARE=" + Config.SERVER_NAME);
 				add("REDIRECT_STATUS=CGI");
-
-				String header;
-				if ((header = request.getHeader("referer")) != null)
-					add("HTTP_REFERER=" + header);
-				if ((header = request.getHeader("user-agent")) != null)
-					add("HTTP_USER_AGENT=" + header);
 				add("SCRIPT_FILENAME=" + file.getAbsolutePath());
 				add("SCRIPT_NAME=" + file.getName());
+				
+				if (request.getHeader("referer") != null)add("HTTP_REFERER=" + request.getHeader("referer"));
+				if (request.getHeader("user-agent") != null)add("HTTP_USER_AGENT=" + request.getHeader("user-agent"));
 
-				if (request.getRequestLine().getMethod()
-						.equalsIgnoreCase("GET")) {
+				if (request.getRequestLine().getMethod().equalsIgnoreCase("GET")) {
 					add("QUERY_STRING=" + request.getQuerie());
 				}
 			}

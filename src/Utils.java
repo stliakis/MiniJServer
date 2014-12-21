@@ -62,6 +62,7 @@ public class Utils {
 	
 	/** check if a parrameter exists */
 	public static boolean contains(String[] args, String... arg) {
+		if(args==null)return false;
 		for (int c = 0; c < args.length; c++) {
 			if(!args[c].contains("--") && args[c].trim().charAt(0)=='-' ){
 				String argstring=args[c].replace("-", "");
@@ -93,6 +94,7 @@ public class Utils {
 	 * args= -pr 232 /home/server ,arg=-r returns /home/server,
 	 *  */
 	public static String argVal(String[] args, String... arg) {
+		if(args==null)return null;
 		for (int c = 0; c < args.length; c++) {
 			if(!args[c].contains("--") && args[c].trim().charAt(0)=='-' ){
 				String argstring=args[c].replace("-", "");
